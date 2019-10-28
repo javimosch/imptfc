@@ -1,4 +1,4 @@
-module.exports = async(app, config) => {
+module.exports = async (app, config) => {
     let funql = app.funqlApi
 
     var helpers = {
@@ -10,6 +10,7 @@ module.exports = async(app, config) => {
             let m = require('moment-timezone')
             return m
                 .apply(m, arguments)
+                .utc()
                 .tz(process.env.MOMENT_TZ || 'Europe/Paris')
                 .locale(process.env.MOMENT_LOCALE || 'fr')
         }
@@ -29,7 +30,7 @@ module.exports = async(app, config) => {
         params: [app, config, helpers],
         scope: apiScope,
         middlewares: [
-            async function() {
+            async function () {
                 if (this.req || this.res) return { err: 401 }
             }
         ]
@@ -41,4 +42,11 @@ module.exports = async(app, config) => {
         params: [app, config, helpers],
         scope: apiScope
     })
+
+
+
+    app.use(
+        config.getRouteName(),
+        require('express').static(config.getPath('client/dist'))
+    )
 }

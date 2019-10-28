@@ -1,6 +1,6 @@
 module.exports = (app, moduleConfig, { lodash, sequential, moment }) =>
     async function savePlayerSlot(form) {
-        return this.withMongodb(async(db, client) => {
+        return this.withMongodb(async (db, client) => {
             let sequences = []
             sequences.push(() => findAndUpdateOrCreatePlayer())
             sequences.push(() => createMatchIfNotExistAndUpdateMatchPlayers())
@@ -8,20 +8,18 @@ module.exports = (app, moduleConfig, { lodash, sequential, moment }) =>
 
             async function createMatchIfNotExistAndUpdateMatchPlayers() {
                 let playerId = (await db.collection('players').findOne({
-                    nickname: form.nickname
+                    nickname: form.nickname.toLowerCase()
                 }))._id
                 return db.collection('matchs').bulkWrite(
                     [{
                         updateOne: {
                             filter: {
-                                created: {
+                                date: {
                                     $gt: moment()._d.getTime()
                                 }
                             },
                             update: {
-                                $addToSet: {
-                                    players: playerId
-                                },
+
                                 $setOnInsert: {
                                     created: moment()._d.getTime(),
                                     date: moment()
@@ -35,10 +33,55 @@ module.exports = (app, moduleConfig, { lodash, sequential, moment }) =>
                             },
                             upsert: true
                         }
+                    }, {
+                        updateOne: {
+                            filter: {
+                                date: {
+                                    $gt: moment()._d.getTime()
+                                },
+                                players: {
+                                    $not: {
+                                        $elemMatch: {
+                                            player_id: playerId
+                                        }
+                                    }
+                                }
+                            },
+                            update: {
+                                $addToSet: {
+                                    players: {
+                                        player_id: playerId,
+                                        teamNumber: form.teamNumber
+                                    }
+                                },
+                            }
+                        }
+                    }, {
+                        updateOne: {
+                            filter: {
+                                date: {
+                                    $gt: moment()._d.getTime()
+                                },
+                                players: {
+                                    $elemMatch: {
+                                        player_id: playerId
+                                    }
+
+                                }
+                            },
+                            update: {
+                                $set: {
+                                    "players.$": {
+                                        player_id: playerId,
+                                        teamNumber: form.teamNumber
+                                    }
+                                },
+                            }
+                        }
                     }], {
-                        ordered: true,
-                        w: 1
-                    }
+                    ordered: true,
+                    w: 1
+                }
                 )
             }
 
@@ -47,21 +90,21 @@ module.exports = (app, moduleConfig, { lodash, sequential, moment }) =>
                     [{
                         updateOne: {
                             filter: {
-                                nickname: form.nickname
+                                nickname: form.nickname.toLowerCase()
                             },
                             update: {
                                 $set: lodash.omit({
-                                        nickname: form.nickname
-                                    },
+                                    nickname: form.nickname.toLowerCase()
+                                },
                                     '_id'
                                 )
                             },
                             upsert: true
                         }
                     }], {
-                        ordered: true,
-                        w: 1
-                    }
+                    ordered: true,
+                    w: 1
+                }
                 )
             }
         })

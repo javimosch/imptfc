@@ -1,25 +1,77 @@
 module.exports = (app, moduleConfig, { lodash, sequential, moment }) =>
     async function getLastMatch(form) {
-        return this.withMongodb(async(db, client) => {
+        return this.withMongodb(async (db, client) => {
             let sequences = []
             sequences.push(() => createMatchIfNotExistAndUpdateMatchPlayers())
             sequences.push(() => findLast())
-            return (await sequential(sequences))[1]
+            let res = await sequential(sequences)
+            res.splice(0, 1)
+            return res instanceof Array && res.length === 1 ? res[0] : res
 
-            async function findLast() {
-                return (await db
+            function findLast() {
+                return db
                     .collection('matchs')
-                    .find({
-                        $gt: moment()._d.getTime()
-                    })
-                    .limit(1))[0]
+                    .aggregate([{
+                        $match: {
+                            date: {
+                                $gt: moment()._d.getTime()
+                            }
+                        }
+                    }, {
+                        $limit: 1
+                    }, {
+                        $unwind: {
+                            path: "$players"
+                        }
+                    }, {
+                        $addFields: {
+                            player: "$players.player_id"
+                        }
+                    }, {
+                        $lookup:
+                        {
+                            from: "players",
+                            localField: "player",
+                            foreignField: "_id",
+                            as: "player"
+                        }
+                    }, {
+                        $addFields: {
+                            "player.teamNumber": "$players.teamNumber"
+                        }
+                    }, {
+                        $project: {
+                            _id: 1,
+                            date: 1,
+                            player: {
+                                $arrayElemAt: ["$player", 0]
+                            }
+                        }
+                    }, {
+                        $project: {
+                            "player._id": 0
+                        }
+                    }, {
+                        $group: {
+                            _id: "$_id",
+                            players: {
+                                $push: "$player"
+                            },
+                            date: { $first: '$date' }
+                        }
+                    }, {
+                        $project: {
+                            _id: false
+                        }
+                    }])
+                    .toArray()
             }
             async function createMatchIfNotExistAndUpdateMatchPlayers() {
                 return db.collection('matchs').bulkWrite(
                     [{
                         updateOne: {
                             filter: {
-                                created: {
+                                date: {
                                     $gt: moment()._d.getTime()
                                 }
                             },
@@ -38,9 +90,9 @@ module.exports = (app, moduleConfig, { lodash, sequential, moment }) =>
                             upsert: true
                         }
                     }], {
-                        ordered: true,
-                        w: 1
-                    }
+                    ordered: true,
+                    w: 1
+                }
                 )
             }
         })
