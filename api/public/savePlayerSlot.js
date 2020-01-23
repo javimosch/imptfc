@@ -1,6 +1,6 @@
 module.exports = (app, moduleConfig, { lodash, sequential, moment }) =>
     async function savePlayerSlot(form) {
-        return this.withMongodb(async (db, client) => {
+        return this.withMongodb(async(db, client) => {
             let sequences = []
             sequences.push(() => findAndUpdateOrCreatePlayer())
             sequences.push(() => createMatchIfNotExistAndUpdateMatchPlayers())
@@ -79,9 +79,9 @@ module.exports = (app, moduleConfig, { lodash, sequential, moment }) =>
                             }
                         }
                     }], {
-                    ordered: true,
-                    w: 1
-                }
+                        ordered: true,
+                        w: 1
+                    }
                 )
             }
 
@@ -94,17 +94,18 @@ module.exports = (app, moduleConfig, { lodash, sequential, moment }) =>
                             },
                             update: {
                                 $set: lodash.omit({
-                                    nickname: form.nickname.toLowerCase()
-                                },
+                                        nickname: form.nickname.toLowerCase(),
+                                        ...(!!form.phone && { phone: form.phone.toLowerCase() })
+                                    },
                                     '_id'
                                 )
                             },
                             upsert: true
                         }
                     }], {
-                    ordered: true,
-                    w: 1
-                }
+                        ordered: true,
+                        w: 1
+                    }
                 )
             }
         })
