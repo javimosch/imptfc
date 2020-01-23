@@ -15,6 +15,9 @@ module.exports = (app, moduleConfig, { lodash, sequential, moment }) =>
                         $match: {
                             date: {
                                 $gt: moment()._d.getTime()
+                            },
+                            status:{
+                                $ne:'CANCELED'
                             }
                         }
                     }, {
@@ -67,23 +70,34 @@ module.exports = (app, moduleConfig, { lodash, sequential, moment }) =>
                     .toArray()
             }
             async function createMatchIfNotExistAndUpdateMatchPlayers() {
+                
+                function getNextMatchDate(){
+                    let cursor = moment()
+                    do{
+                        cursor = cursor
+                                    .day(6)
+                                    .add(1, 'day')
+                                    .hour(9)
+                                    .minute(0)
+                    }while([22,29,5,12].includes(cursor.date()));
+                    return cursor._d.getTime()
+                }
+                
                 return db.collection('matchs').bulkWrite(
                     [{
                         updateOne: {
                             filter: {
                                 date: {
                                     $gt: moment()._d.getTime()
+                                },
+                                status:{
+                                    $ne:"CANCELED"
                                 }
                             },
                             update: {
                                 $setOnInsert: {
                                     created: moment()._d.getTime(),
-                                    date: moment()
-                                        .day(6)
-                                        .add(1, 'day')
-                                        .hour(9)
-                                        .minute(0)
-                                        ._d.getTime()
+                                    date: getNextMatchDate()
                                 },
                                 $currentDate: { lastModified: true }
                             },
