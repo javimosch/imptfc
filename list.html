@@ -1,0 +1,111 @@
+<html>
+	<head>
+			<meta name="viewport" content="width=device-width, initial-scale=1">
+			<script>
+					window.initialState = {{INITIAL_STATE}}
+					window.exports = {}
+			</script>
+			<style>
+				body{
+					margin:0px;
+					padding:0px 5px;
+					font-family: monospace;
+    font-size: 16px;
+				}
+				table{
+					width:100%;
+				}
+				th{
+					text-align:left;
+				}
+				select{
+					padding: 20px 0px;
+				}
+				h3{
+				background: slateblue;
+    color: white;
+    padding: 10px 5px;
+    margin: 0px -5px 10px -5px;
+				}
+			</style>
+	</head>
+	<body>
+			<div id="app">
+				<div v-for="item in matches">
+						<h3 v-text="item.dateF"></h3>
+						<table>
+							<thead>
+								<tr>
+									<th>Team</th>
+									<th>Nom</th>
+									<th>Portable</th>
+								</tr>
+							</thead>
+							<tbody>
+								<tr v-for="player in item.players">
+									<td>
+										
+										<div v-show="!canEditTeam(item)">
+											<span v-text="player.team"></span>
+										</div>
+										
+										<div v-show="canEditTeam(item)">
+											<select v-model="player.teamNumber" @change="onPlayerTeamChange(player)">
+												<option value="0">Absense</option>
+												<option value="1">Team 1</option>
+												<option value="2">Team 2</option>
+											</select>
+										</div>
+										
+									</td>
+									<td v-text="player.nickname"></td>
+									<td v-text="player.phone"></td>
+								</tr>
+							</tbody>
+							<tfoot>
+								Total players: <span v-text="item.players.length"></span>
+							
+							</tfoot>
+						</table>
+				</div>
+			</div>
+			<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+			<script src="https://cdn.jsdelivr.net/npm/funql-api@1.2.8/client.cjs.js"></script>
+			<script>
+					var fql
+					
+					new Vue({
+						el:"#app",
+						data(){
+							return {
+								endpoint: window.initialState.endpoint,
+								matches: window.initialState && window.initialState.matches || []
+							}
+						},
+						created(){
+								fql = createClient(this.endpoint)
+						},
+						async mounted(){
+							
+						},
+						methods:{
+							async onPlayerTeamChange(player){
+								await fql("savePlayerSlot",{
+									...player
+								},{
+									namespace:"imptfc"
+								})
+								
+								let data = await fql("getAppBackofficeData",{},{
+									namespace:"imptfc"
+								})
+								this.matches = data;
+							},
+							canEditTeam(item){
+								return item.dateDiff >= -2
+							}
+						}
+					})
+			</script>
+	</body>
+</html>

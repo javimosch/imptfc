@@ -51,7 +51,7 @@ module.exports = (app, moduleConfig, { lodash, sequential, moment }) =>
                                 $addToSet: {
                                     players: {
                                         player_id: playerId,
-                                        teamNumber: form.teamNumber
+                                        teamNumber: parseInt(form.teamNumber)
                                     }
                                 },
                             }
@@ -73,7 +73,7 @@ module.exports = (app, moduleConfig, { lodash, sequential, moment }) =>
                                 $set: {
                                     "players.$": {
                                         player_id: playerId,
-                                        teamNumber: form.teamNumber
+                                        teamNumber: parseInt(form.teamNumber)
                                     }
                                 },
                             }

@@ -1,20 +1,47 @@
 module.exports = (app, moduleConfig, { lodash, sequential, moment }) =>
-    async function getLastMatch(form) {
+    async function getMatchesPlayersReport() {
         return this.withMongodb(async (db, client) => {
             let sequences = []
-            sequences.push(() => createMatchIfNotExistAndUpdateMatchPlayers())
-            sequences.push(() => findLast())
+            //sequences.push(() => createMatchIfNotExistAndUpdateMatchPlayers())
+            sequences.push(() => getRepport())
             let res = await sequential(sequences)
-            res.splice(0, 1)
-            return res instanceof Array && res.length === 1 ? res[0] : res
+            
+            res = res.map(item=>{
+            	item.status = item.status || "OK"
+            	item.dateF = moment(item.date).format("LLLL")
+            	item.dateDiff = moment(item.date).diff(moment(),"hours")
+            	
+            	item.players = item.players.map(p=>{
+            		p.team = ({
+            			"0":"Absense",
+            			"1":"Team 1",
+            			"2":"Team 2"
+            		})[p.teamNumber]
+            		p.nickname = p.nickname.charAt(0).toUpperCase() + p.nickname.substring(1)
+            		
+            		return p
+            	}).sort((a,b)=>{
+            		 if([1,2].includes(a.teamNumber) && 
+            		 [1,2].includes(b.teamNumber)){
+            			return a.teamNumber === 1 ? -1 : 1
+            		 }else{
+            			return a.teamNumber === 0 ? 1 : -1;
+            		 }
+            		
+            	})
+            	
+            	return item;
+            })
+            
+            return res;
 
-            function findLast() {
+            function getRepport() {
                 return db
                     .collection('matchs')
-                    .aggregate([{
+                    .aggregate([/*{
                         $match: {
                             date: {
-                                $gt: moment()._d.getTime() - 1000 * 60 * 60 * 3
+                                $gt: moment()._d.getTime()
                             },
                             status:{
                                 $ne:'CANCELED'
@@ -22,7 +49,7 @@ module.exports = (app, moduleConfig, { lodash, sequential, moment }) =>
                         }
                     }, {
                         $limit: 1
-                    }, {
+                    },*/ {
                         $unwind: {
                             path: "$players"
                         }
@@ -66,48 +93,13 @@ module.exports = (app, moduleConfig, { lodash, sequential, moment }) =>
                         $project: {
                             _id: false
                         }
+                    },{
+                    	$sort:{
+                    		date: -1
+                    	}
                     }])
                     .toArray()
             }
-            async function createMatchIfNotExistAndUpdateMatchPlayers() {
-                
-                function getNextMatchDate(){
-                    let cursor = moment()
-                    do{
-                        cursor = cursor
-                                    .day(6)
-                                    .add(1, 'day')
-                                    .hour(9)
-                                    .minute(0)
-                    }while([22,29,5,12].includes(cursor.date()));
-                    return cursor._d.getTime()
-                }
-                
-                return db.collection('matchs').bulkWrite(
-                    [{
-                        updateOne: {
-                            filter: {
-                                date: {
-                                    $gt: moment()._d.getTime()
-                                },
-                                status:{
-                                    $ne:"CANCELED"
-                                }
-                            },
-                            update: {
-                                $setOnInsert: {
-                                    created: moment()._d.getTime(),
-                                    date: getNextMatchDate()
-                                },
-                                $currentDate: { lastModified: true }
-                            },
-                            upsert: true
-                        }
-                    }], {
-                    ordered: true,
-                    w: 1
-                }
-                )
-            }
+            
         })
     }

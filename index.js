@@ -6,13 +6,14 @@ module.exports = async (app, config) => {
         sequential: require('promise-sequential'),
         lodash: require('lodash'),
         moment: function moment() {
-            return require('moment-timezone').apply(null, arguments)
+            //return require('moment-timezone').apply(null, arguments)
             let m = require('moment-timezone')
+            m.locale(process.env.MOMENT_LOCALE ||'fr')
             return m
                 .apply(m, arguments)
                 .utc()
                 .tz(process.env.MOMENT_TZ || 'Europe/Paris')
-                .locale(process.env.MOMENT_LOCALE || 'fr')
+               
         }
     }
 
@@ -31,7 +32,8 @@ module.exports = async (app, config) => {
         scope: apiScope,
         middlewares: [
             async function () {
-                if (this.req || this.res) return { err: 401 }
+               // if (this.req || this.res) return { err: 401 }
+               return true
             }
         ]
     })
@@ -43,7 +45,20 @@ module.exports = async (app, config) => {
         scope: apiScope
     })
 
-
+    app.get(config.getRouteName('list'),async(req,res)=>{
+        if(req.query.pwd!=='secret') res.status(401).send()
+        let c = (await require('sander').readFile(config.getPath('list.html'))).toString('utf-8')
+        let matches = await app.api[config.name].getMatchesPlayersReport()
+        
+        let endpoint = process.env.NODE_ENV === 'production' ? `https://edge.savoie.misitioba.com` : 
+        ('http://'+req.headers.host.split('http://').join(''))
+        
+        c = c.split("{{INITIAL_STATE}}").join(JSON.stringify({
+            endpoint,
+            matches
+        },null,4))
+        res.send(c)
+    })
 
     app.use(
         config.getRouteName(),
