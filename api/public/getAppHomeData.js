@@ -1,7 +1,8 @@
 module.exports = (app, moduleConfig, { moment, functions }) =>
     async function getAppHomeData() {
-        return this.withMongodb(async (db, client) => {
+        return this.withMongodb(async(db, client) => {
             let match = await functions().getLastMatch()
+
             return {
                 options: await functions().getAppSettings(),
                 stats: {

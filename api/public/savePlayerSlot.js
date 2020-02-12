@@ -51,6 +51,7 @@ module.exports = (app, moduleConfig, { lodash, sequential, moment }) =>
                                 $addToSet: {
                                     players: {
                                         player_id: playerId,
+                                        joined: moment()._d.getTime(),
                                         teamNumber: parseInt(form.teamNumber)
                                     }
                                 },
@@ -71,10 +72,8 @@ module.exports = (app, moduleConfig, { lodash, sequential, moment }) =>
                             },
                             update: {
                                 $set: {
-                                    "players.$": {
-                                        player_id: playerId,
-                                        teamNumber: parseInt(form.teamNumber)
-                                    }
+                                    "players.$.player_id": playerId,
+                                    "players.$.teamNumber": parseInt(form.teamNumber)
                                 },
                             }
                         }

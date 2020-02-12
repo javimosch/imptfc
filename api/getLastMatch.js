@@ -1,10 +1,11 @@
 module.exports = (app, moduleConfig, { lodash, sequential, moment }) =>
     async function getLastMatch(form) {
-        return this.withMongodb(async (db, client) => {
+        return this.withMongodb(async(db, client) => {
             let sequences = []
             sequences.push(() => createMatchIfNotExistAndUpdateMatchPlayers())
             sequences.push(() => findLast())
             let res = await sequential(sequences)
+
             res.splice(0, 1)
             return res instanceof Array && res.length === 1 ? res[0] : res
 
@@ -16,8 +17,8 @@ module.exports = (app, moduleConfig, { lodash, sequential, moment }) =>
                             date: {
                                 $gt: moment()._d.getTime() - 1000 * 60 * 60 * 3
                             },
-                            status:{
-                                $ne:'CANCELED'
+                            status: {
+                                $ne: 'CANCELED'
                             }
                         }
                     }, {
@@ -31,8 +32,7 @@ module.exports = (app, moduleConfig, { lodash, sequential, moment }) =>
                             player: "$players.player_id"
                         }
                     }, {
-                        $lookup:
-                        {
+                        $lookup: {
                             from: "players",
                             localField: "player",
                             foreignField: "_id",
@@ -70,19 +70,19 @@ module.exports = (app, moduleConfig, { lodash, sequential, moment }) =>
                     .toArray()
             }
             async function createMatchIfNotExistAndUpdateMatchPlayers() {
-                
-                function getNextMatchDate(){
+
+                function getNextMatchDate() {
                     let cursor = moment()
-                    do{
+                    do {
                         cursor = cursor
-                                    .day(6)
-                                    .add(1, 'day')
-                                    .hour(9)
-                                    .minute(0)
-                    }while([22,29,5,12].includes(cursor.date()));
+                            .day(6)
+                            .add(1, 'day')
+                            .hour(9)
+                            .minute(0)
+                    } while ([22, 29, 5, 12].includes(cursor.date()));
                     return cursor._d.getTime()
                 }
-                
+
                 return db.collection('matchs').bulkWrite(
                     [{
                         updateOne: {
@@ -90,8 +90,8 @@ module.exports = (app, moduleConfig, { lodash, sequential, moment }) =>
                                 date: {
                                     $gt: moment()._d.getTime()
                                 },
-                                status:{
-                                    $ne:"CANCELED"
+                                status: {
+                                    $ne: "CANCELED"
                                 }
                             },
                             update: {
@@ -104,9 +104,9 @@ module.exports = (app, moduleConfig, { lodash, sequential, moment }) =>
                             upsert: true
                         }
                     }], {
-                    ordered: true,
-                    w: 1
-                }
+                        ordered: true,
+                        w: 1
+                    }
                 )
             }
         })
