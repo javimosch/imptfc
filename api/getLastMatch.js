@@ -73,13 +73,13 @@ module.exports = (app, moduleConfig, { lodash, sequential, moment }) =>
 
                 function getNextMatchDate() {
                     let cursor = moment()
-                    do {
+                    //do {
                         cursor = cursor
                             .day(6)
                             .add(1, 'day')
                             .hour(9)
                             .minute(0)
-                    } while ([22, 29, 5, 12].includes(cursor.date()));
+                    //} while ([22, 29, 5, 12].includes(cursor.date()));
                     return cursor._d.getTime()
                 }
 
