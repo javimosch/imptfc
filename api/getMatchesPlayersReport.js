@@ -11,12 +11,16 @@ module.exports = (app, moduleConfig, { lodash, sequential, moment }) =>
             	item.dateF = moment(item.date).format("LLLL")
             	item.dateDiff = moment(item.date).diff(moment(),"hours")
             	
+            /*	const tabl = {
+            			0:"Absense",
+            			1:"Equipe 1",
+            			2:"Equipe 2",
+            			3:"Liste d'attente"
+            		};*/
+            	
             	item.players = item.players.map(p=>{
-            		p.team = ({
-            			"0":"Absense",
-            			"1":"Team 1",
-            			"2":"Team 2"
-            		})[p.teamNumber]
+            		//p.team = "ASD" //tabl[p.teamNumber];
+            		
             		p.nickname = p.nickname.charAt(0).toUpperCase() + p.nickname.substring(1)
             		
             		return p
