@@ -1,6 +1,8 @@
 module.exports = async (app, config) => {
     let funql = app.funqlApi
 
+    const debug = app.getDebugInstance('IMPTFC')
+
     var helpers = {
 	config,
         functions: () => app.api[config.name],
@@ -43,6 +45,9 @@ module.exports = async (app, config) => {
         namespace: config.name,
         path: config.getPath('api/public'),
         params: [app, config, helpers],
+        middlewares:[async ()=>{
+            console.log("MIDDLEWARE")
+        }],
         scope: apiScope
     })
 
