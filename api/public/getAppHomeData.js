@@ -10,7 +10,9 @@ module.exports = (app, moduleConfig, { moment, functions }) =>
                     teamNumbers: [
                         match.players.reduce((a, v) => a + (v.teamNumber === 1 ? 1 : 0), 0),
                         match.players.reduce((a, v) => a + (v.teamNumber === 2 ? 1 : 0), 0),
-                        match.players.reduce((a, v) => a + (v.teamNumber === 3 ? 1 : 0), 0)
+                        match.players.reduce((a, v) => a + (v.teamNumber === 3 ? 1 : 0), 0),
+                        match.players.reduce((a, v) => a + (v.teamNumber === 4 ? 1 : 0), 0),
+                        match.players.reduce((a, v) => a + (v.teamNumber === 5 ? 1 : 0), 0)
                     ],
                     match
                 }

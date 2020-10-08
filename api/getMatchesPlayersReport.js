@@ -15,7 +15,10 @@ module.exports = (app, moduleConfig, { lodash, sequential, moment }) =>
             		p.team = ({
             			"0":"Absense",
             			"1":"Team 1",
-            			"2":"Team 2"
+                        "2":"Team 2",
+                        "3":"Team 3",
+                        "4":"Team 4",
+                        "5":"Replacant"
             		})[p.teamNumber]
             		p.nickname = p.nickname.charAt(0).toUpperCase() + p.nickname.substring(1)
             		

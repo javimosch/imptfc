@@ -40,7 +40,8 @@ module.exports = (app, moduleConfig, { lodash, sequential, moment }) =>
                         }
                     }, {
                         $addFields: {
-                            "player.teamNumber": "$players.teamNumber"
+                            "player.teamNumber": "$players.teamNumber",
+                            "player.joined": "$players.joined"
                         }
                     }, {
                         $project: {
