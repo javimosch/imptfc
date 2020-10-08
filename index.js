@@ -4,6 +4,7 @@ module.exports = async (app, config) => {
     const debug = app.getDebugInstance('IMPTFC')
 
     var helpers = {
+	config,
         functions: () => app.api[config.name],
         sequential: require('promise-sequential'),
         lodash: require('lodash'),
@@ -64,9 +65,40 @@ module.exports = async (app, config) => {
         },null,4))
         res.send(c)
     })
+    
+    app.get(
+        config.getRouteName('app/app.js'),
+        app.webpackMiddleware({
+            entry: config.getPath('app/main.js')
+        })
+    )
+    
+    
+    app.get(config.getRouteName("app"),app.builder.transformFileRoute({
+        source: config.getPath('app/index.pug'),
+        context: {
+            config,
+            env: process.env
+        }
+    }))
+    
+    
+    
+    app.use(
+        config.getRouteName(),
+        require('express').static(config.getPath())
+    )
+    
+    app.get(config.getRouteName('/comments'),(req,res)=>{
+        res.sendFile(config.getPath("/comments.html"))
+    })
+    
+    
 
     app.use(
         config.getRouteName(),
         require('express').static(config.getPath('client/dist'))
     )
+    
+    
 }

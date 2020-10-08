@@ -1,0 +1,24 @@
+html
+  head
+    block head
+    meta(name='viewport', content='width=device-width, initial-scale=1')
+    link(rel="stylesheet", href="/static/css/all.min.css", attr)
+    link(rel="stylesheet", href="/static/css/fonts.css", attr)
+    script.
+      window.appName = '#{config.name}'
+      window.cwd = '#{fn.cwd()}'
+  body
+    .app
+      router-view
+
+    script(src="https://code.jquery.com/jquery-3.4.1.min.js" integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous")
+    if env.NODE_ENV==='production'
+      script(src="https://unpkg.com/vue@2.6.10/dist/vue.min.js")
+    else
+      script(src="https://unpkg.com/vue@2.6.10/dist/vue.js")
+    script(src="https://unpkg.com/vue-router/dist/vue-router.min.js")
+    script(src="https://unpkg.com/axios@0.2.1/dist/axios.min.js")
+    script(src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.15/lodash.min.js")
+    script(src=fn.cwd("app.js"))
+
+    block scripts
