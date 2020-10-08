@@ -23,7 +23,7 @@ module.exports = async (app, config) => {
     const apiScope = {
         withMongodb: cb => {
             return app.withMongodb(cb, {
-                dbName: config.name
+                dbName: process.env.IMPTFC_DB || config.name
             })
         }
     }
