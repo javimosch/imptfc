@@ -51,6 +51,7 @@ module.exports = async (app, config) => {
         if (req.query.pwd !== 'secret') res.status(401).send()
         let c = (await require('sander').readFile(config.getPath('list.html'))).toString('utf-8')
         let matches = await app.api[config.name].getMatchesPlayersReport()
+	let protocol = req.headers.host.indexOf("localhost")!==-1 ? "http://" : "https://"
         c = c.split("{{INITIAL_STATE}}").join(JSON.stringify({
             mainNotice: await apiScope.withMongodb(async db=>{
                 let notice = await db.collection('notices').findOne({
@@ -58,7 +59,7 @@ module.exports = async (app, config) => {
                 })
                 return notice && notice.contents || ""
             }),
-            endpoint:  'http://' + req.headers.host.split('http://').join(''),
+            endpoint:  protocol + req.headers.host.split(protocol).join(''),
             matches
         }, null, 4))
         res.send(c)
