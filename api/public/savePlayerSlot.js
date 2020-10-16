@@ -94,7 +94,8 @@ module.exports = (app, moduleConfig, { lodash, sequential, moment }) =>
                             update: {
                                 $set: lodash.omit({
                                         nickname: form.nickname.toLowerCase(),
-                                        ...(!!form.phone && { phone: form.phone.toLowerCase() })
+                                        ...(!!form.phone && { phone: form.phone.toLowerCase() }),
+                                        ...(!!form.email && { email: form.email.toLowerCase() })
                                     },
                                     '_id'
                                 )
