@@ -27,10 +27,44 @@
     padding: 10px 5px;
     margin: 0px -5px 10px -5px;
 				}
+				label{
+					padding-top:15px;
+					display: block;
+				}
+				textarea{
+					display:block;
+					width:100%;
+					min-height: 300px;
+					text-align: left;
+					margin:10px auto;
+
+				}
+				button{
+					background-color:slateblue;
+					color:white;
+					min-width: 200px;
+					margin:5px auto 20px auto;
+					border:0px;
+					padding:10px;
+				}
+				button:active,button:focus,button:hover{
+					opacity: 0.8;
+					outline:0px;
+					cursor:pointer;
+				}
 			</style>
 	</head>
 	<body>
 			<div id="app">
+
+				<div>
+					<label>The follow message will be shown in the home page (html)</label>
+					<textarea v-model="mainNotice">
+
+					</textarea>
+					<button @click="saveMainNotice">Save</button>
+				</div>
+
 				<div v-for="item in matches">
 						<h3 v-text="item.dateF"></h3>
 						<table>
@@ -83,6 +117,10 @@
 						el:"#app",
 						data(){
 							return {
+								mainNotice:window.initialState.mainNotice||`
+<h3>Notice</h3>
+<p>Notice message</p>
+								`,
 								endpoint: window.initialState.endpoint,
 								matches: window.initialState && window.initialState.matches || []
 							}
@@ -94,6 +132,15 @@
 							
 						},
 						methods:{
+							async saveMainNotice(){
+								
+								await fql("saveMainNotice",{
+									mainNotice:this.mainNotice
+								},{
+									namespace:"imptfc"
+								})
+								alert("Changes saved")
+							},
 							async onPlayerTeamChange(player){
 								await fql("savePlayerSlot",{
 									...player
