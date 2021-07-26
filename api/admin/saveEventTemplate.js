@@ -8,13 +8,13 @@ const ObjectID = require("mongodb").ObjectID;
  * @returns
  */
 module.exports = (app, config, { moment }) => {
-  return async function saveEvent(data) {
+  return async function saveEventTemplate(data) {
     return this.withMongodb(async (db, client) => {
       let payload = {
         ...data,
       };
       delete payload._id;
-      return db.collection("events").bulkWrite(
+      return db.collection("event_templates").bulkWrite(
         [
           {
             updateOne: {
@@ -29,8 +29,11 @@ module.exports = (app, config, { moment }) => {
                   created: moment().format("DD-MM-YYYY HH:mm:ss"),
                 },
                 $set: {
-                  is_draft: true,
                   ...payload,
+                  datetime: moment(
+                    `${payload.date} ${payload.time}`,
+                    `YYYY-MM-DD HH:mm`
+                  )._d,
                 },
                 $currentDate: { lastModified: true },
               },
