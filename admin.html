@@ -1,8 +1,11 @@
-<html>
+<!DOCTYPE html>
+<html lang="en">
 
 <head>
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<link href="https://unpkg.com/tailwindcss@^2/dist/tailwind.min.css" rel="stylesheet">
+	<title>IMPTFC - ADMIN</title>
+	<link rel="shortcut icon" type="image/jpg" href="favicon.ico" />
 	<script>
 		window.initialState = __INITIAL_STATE__
 		window.exports = {}
@@ -105,6 +108,11 @@
 		.dashboard .item_title {
 			cursor: pointer;
 		}
+
+		input[type="checkbox"] {
+			width: 25px;
+			height: 25px;
+		}
 	</style>
 </head>
 
@@ -171,7 +179,7 @@
 			<div v-if="view.includes('planning')">
 				<section class="toolbar">
 					<a href="#" v-show="view==='planning'" @click="()=>view='planning.add'">Add</a>
-					<a href="#" v-show="view==='planning.add'" @click="()=>view='planning'">Cancel</a>
+					<a href="#" v-show="view==='planning.add'" @click="switchToPlanning">Cancel</a>
 					<a href="#" v-show="view==='planning'" @click="fetchEventTemplates">Refresh list</a>
 				</section>
 				<section class="planning_add" v-if="view==='planning.add'">
@@ -193,13 +201,15 @@
 					<table class="table-fixed" aria-label="Event templates table">
 						<thead>
 							<tr>
+								<th scope="col" class="w-1/4 ...">Action</th>
 								<th scope="col" class="w-1/2 ...">Date</th>
 								<th scope="col" class="w-1/4 ...">Title</th>
 								<th scope="col" class="w-1/4 ...">Repeat</th>
 							</tr>
 						</thead>
 						<tbody>
-							<tr v-for="item in eventTemplates">
+							<tr v-for="item in eventTemplates" @click="editEventTemplate(item)">
+								<td><input type="checkbox" @click="selectPlanningRow" /></td>
 								<td>{{item.datetime}}</td>
 								<td>{{item.title}}</td>
 								<td>{{item.repeatLabel}}</td>
@@ -225,17 +235,21 @@
 	<script>
 		var fql
 
+		function resetEventTpl() {
+			return {
+				title: 'Example: Weekly Beach Foot',
+				repeat: 'week',
+				date: '2021-07-29',
+				time: '16:00'
+			}
+		}
+
 		new Vue({
 			el: "#app",
 			data() {
 				return {
 					view: "dashboard",
-					eventTpl: {
-						title: 'Weekly Beach Foot',
-						repeat: 'week',
-						date: '2021-07-29',
-						time: '16:00'
-					},
+					eventTpl: resetEventTpl(),
 					eventTemplates: [],
 					mainNotice: window.initialState.mainNotice || `
 <h3>Notice</h3>
@@ -249,6 +263,15 @@
 				fql = createClient(this.endpoint)
 			},
 			methods: {
+				selectPlanningRow(e) {
+					e.stopPropagation()
+				},
+				async editEventTemplate(item) {
+					this.eventTpl = await fql('fetchEventTemplateById', item._id, {
+						namespace: "imptfc"
+					})
+					this.view = "planning.add"
+				},
 				toggleMatchTable(item) {
 					if (item._showTable == undefined) {
 						this.$set(item, '_showTable', true)
@@ -259,6 +282,7 @@
 				switchToPlanning() {
 					this.view = 'planning'
 					this.fetchEventTemplates()
+					this.eventTpl = resetEventTpl()
 				},
 				async fetchEventTemplates() {
 					this.eventTemplates = await fql('fetchEventTemplates', {}, {
@@ -275,7 +299,7 @@
 					}, {
 						namespace: "imptfc"
 					})
-					this.view = "planning"
+					this.switchToPlanning()
 				},
 				async saveMainNotice() {
 

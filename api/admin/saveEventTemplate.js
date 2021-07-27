@@ -14,6 +14,8 @@ module.exports = (app, config, { moment }) => {
         ...data,
       };
       delete payload._id;
+      delete payload.created;
+      delete payload.lastModified;
       return db.collection("event_templates").bulkWrite(
         [
           {

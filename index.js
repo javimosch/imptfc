@@ -1,3 +1,5 @@
+const express = require("express");
+
 module.exports = async (app, config) => {
   /**
    * This helpers will be injected in the funql functions
@@ -94,4 +96,6 @@ module.exports = async (app, config) => {
   app.get(config.getRouteName("list"), async (req, res) => {
     res.redirect(`${config.getRouteName("admin")}?pwd=${req.query.pwd}`);
   });
+
+  app.use(config.getRouteName("/"), express.static(config.getPath("public")));
 };
