@@ -1,6 +1,31 @@
-const express = require("express");
+const path = require('path')
+const express = require('express')
+const app = express()
+const funqlApi = require('funql-api')
+const port = process.env.PORT || 3000
+const config = {  
+  name:'imptfc',
+  getPath(subPath){
+    return path.join(process.cwd(),subPath)
+  },
+  getRouteName(name){
+    return `/${name}`
+  }
+}
 
-module.exports = async (app, config) => {
+app.funqlApi = funqlApi
+
+createRoutes(app, config).then(() => {
+
+  app.listen(port, () => {
+    console.log(`app listening at http://localhost:${port}`)
+  })
+
+})
+
+
+
+async function createRoutes(app, config) {
   /**
    * This helpers will be injected in the funql functions
    */
