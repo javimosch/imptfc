@@ -106,8 +106,8 @@ module.exports = (app, moduleConfig, { lodash, sequential, moment }) =>
                 {
                   $project: {
                     _id: true,
-                    date:true,
-                    players:true
+                    date: true,
+                    players: true,
                   },
                 },
               ])
@@ -123,7 +123,7 @@ module.exports = (app, moduleConfig, { lodash, sequential, moment }) =>
           if (eventDayOfWeek < cursor.day()) {
             cursor = cursor
               .day(6)
-              .add(eventDayOfWeek + 1)
+              .add(eventDayOfWeek + 1, "day")
               .hour(8)
               .minute(0);
           } else {
