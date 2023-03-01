@@ -1,5 +1,14 @@
+const {  ObjectID } = require('mongodb');
+
 module.exports = (app, moduleConfig, { lodash, sequential, moment }) =>
     async function savePlayerSlot(form) {
+
+        const matchFilter = {
+            _id:{
+                $eq: ObjectID(form.eventId)
+            }
+        }
+
         return this.withMongodb(async(db, client) => {
             let sequences = []
             sequences.push(() => findAndUpdateOrCreatePlayer())
@@ -11,7 +20,7 @@ module.exports = (app, moduleConfig, { lodash, sequential, moment }) =>
                     nickname: form.nickname.toLowerCase()
                 }))._id
                 return db.collection('matchs').bulkWrite(
-                    [{
+                    [/*{
                         updateOne: {
                             filter: {
                                 date: {
@@ -33,19 +42,26 @@ module.exports = (app, moduleConfig, { lodash, sequential, moment }) =>
                             },
                             upsert: true
                         }
-                    }, {
+                    },*/ {
                         updateOne: {
                             filter: {
-                                date: {
-                                    $gt: moment()._d.getTime()
-                                },
-                                players: {
-                                    $not: {
-                                        $elemMatch: {
-                                            player_id: playerId
+                                ...matchFilter,
+                                $or:[
+                                    {
+                                        players: {
+                                            $not: {
+                                                $elemMatch: {
+                                                    player_id: playerId
+                                                }
+                                            }
+                                        }
+                                    },
+                                    {
+                                        players:{
+                                            $exists:false
                                         }
                                     }
-                                }
+                                ]
                             },
                             update: {
                                 $addToSet: {
@@ -60,9 +76,7 @@ module.exports = (app, moduleConfig, { lodash, sequential, moment }) =>
                     }, {
                         updateOne: {
                             filter: {
-                                date: {
-                                    $gt: moment()._d.getTime()
-                                },
+                                ...matchFilter,
                                 players: {
                                     $elemMatch: {
                                         player_id: playerId

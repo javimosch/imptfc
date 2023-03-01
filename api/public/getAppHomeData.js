@@ -1,7 +1,10 @@
 module.exports = (app, moduleConfig, { moment, functions }) =>
-    async function getAppHomeData() {
+    async function getAppHomeData(params) {
+
+
+
         return this.withMongodb(async(db, client) => {
-            let match = await functions().getLastMatch()
+            let match = await functions().getLastMatch(params)
             let players = match.players || []
             return {
                 mainNotice: await db.collection('notices').findOne({
